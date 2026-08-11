@@ -85,13 +85,13 @@ jobs:
       - name: Configure Godot editor settings
         run: |
           mkdir -p ~/.config/godot
-          cat > ~/.config/godot/editor_settings.cfg << EOF
+          cat > ~/.config/godot/editor_settings.cfg << 'EOF'
           [filesystem]
-          import/android_android_sdk_path="${ANDROID_HOME}"
-          import/android_jdk_path="${JAVA_HOME}"
+          import/android_android_sdk_path="/usr/local/lib/android/sdk"
+          import/android_jdk_path="/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.19-10/x64"
           
           [export]
-          android/debug_keystore=""
+          android/debug_keystore="/home/runner/.android/debug.keystore"
           android/debug_keystore_user="androiddebugkey"
           android/debug_keystore_password="android"
           EOF
