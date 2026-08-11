@@ -9,7 +9,7 @@ config_version=5
 config/name="Aura Blocks"
 config/description="Drop, merge, and chain-react your way through 100+ satisfying puzzle levels. No login, no signup - just instant play!"
 run/main_scene="res://scenes/Main.tscn"
-config/features=PoolStringArray("vram_texture_compression/s3tc")
+config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
 config/version="1.0.0"
 
