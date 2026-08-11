@@ -1,0 +1,51 @@
+; Aura Blocks - Godot 4 Project File
+; A no-login, ad-based, addictive puzzle game
+; Engine version: Godot 4.3+
+
+config_version=5
+
+[application]
+
+config/name="Aura Blocks"
+config/description="Drop, merge, and chain-react your way through 100+ satisfying puzzle levels. No login, no signup - just instant play!"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PoolStringArray("vram_texture_compression/s3tc")
+config/icon="res://icon.svg"
+config/version="1.0.0"
+
+[autoload]
+
+GameManager="*res://scripts/GameManager.gd"
+SaveManager="*res://scripts/SaveManager.gd"
+AdManager="*res://scripts/AdManager.gd"
+AudioManager="*res://scripts/AudioManager.gd"
+LevelManager="*res://scripts/LevelManager.gd"
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[input]
+
+tap={
+"deadzone": 0.5,
+"events": []
+}
+ui_cancel={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194305,"physical_keycode":0,"key_label":0,"unicode":0,"echo":false,"script":null)
+]
+}
+
+[physics]
+
+2d/default_gravity=1200
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0

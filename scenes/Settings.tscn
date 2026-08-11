@@ -1,0 +1,101 @@
+[gd_scene load_steps=2 format=3 uid="uid://b_settings_scene"]
+
+[ext_resource type="Script" path="res://scripts/Settings.gd" id="1_settings"]
+
+[node name="Settings" type="Node2D"]
+script = ExtResource("1_settings")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Background" type="ColorRect" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.06, 0.06, 0.14, 1)
+
+[node name="UI" type="Control" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="BackButton" type="Button" parent="CanvasLayer/UI"]
+anchors_preset = 0
+offset_left = 30
+offset_top = 30
+offset_right = 200
+offset_bottom = 110
+text = "< Back"
+add_theme_font_size_override("font_size", 32)
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300
+offset_top = 50
+offset_right = 300
+offset_bottom = 150
+horizontal_alignment = 1
+text = "Settings"
+add_theme_font_size_override("font_size", 64)
+add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -350
+offset_top = 250
+offset_right = 350
+offset_bottom = 1500
+
+[node name="SoundButton" type="Button" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "Sound: ON"
+add_theme_font_size_override("font_size", 36)
+
+[node name="MusicButton" type="Button" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "Music: ON"
+add_theme_font_size_override("font_size", 36)
+
+[node name="HapticsButton" type="Button" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "Haptics: ON"
+add_theme_font_size_override("font_size", 36)
+
+[node name="Spacer1" type="Control" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 40)
+
+[node name="BackupButton" type="Button" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "Show Backup Code"
+add_theme_font_size_override("font_size", 32)
+
+[node name="RestoreButton" type="Button" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "Restore Progress"
+add_theme_font_size_override("font_size", 32)
+
+[node name="Spacer2" type="Control" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 40)
+
+[node name="ResetButton" type="Button" parent="CanvasLayer/UI/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "Reset Progress"
+add_theme_font_size_override("font_size", 32)
+add_theme_color_override("font_color", Color(0.95, 0.3, 0.3))
+
+[node name="VersionLabel" type="Label" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300
+offset_top = 1750
+offset_right = 300
+offset_bottom = 1820
+horizontal_alignment = 1
+text = "Aura Blocks v1.0.0"
+add_theme_font_size_override("font_size", 24)
+add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))

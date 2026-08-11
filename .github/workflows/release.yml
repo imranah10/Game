@@ -1,0 +1,142 @@
+# Release workflow: When you push a version tag (v1.0.0, v1.1.0, etc),
+# this builds a RELEASE APK and creates a GitHub Release with the APK attached.
+#
+# USAGE:
+#   git tag v1.0.0
+#   git push origin v1.0.0
+# 
+# Then this workflow runs, builds the release APK, and creates a GitHub release.
+
+name: Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  GODOT_VERSION: 4.3
+  EXPORT_NAME: AuraBlocks
+
+jobs:
+  release:
+    name: Build & Release APK
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    permissions:
+      contents: write  # needed to create GitHub release
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Cache Godot Engine
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            godot
+            godot_templates
+          key: ${{ runner.os }}-godot-${{ env.GODOT_VERSION }}-stable
+      
+      - name: Download Godot Engine
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          unzip -q Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot
+          chmod +x godot
+      
+      - name: Download Export Templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p godot_templates
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          mv templates godot_templates/
+      
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools build-tools;34.0.0 platforms;android-34'
+      
+      - name: Configure Godot editor
+        run: |
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings.cfg << 'EOF'
+          [filesystem]
+          import/android_android_sdk_path="/usr/local/lib/android/sdk"
+          import/android_jdk_path="/opt/hostedtoolcache/jdk"
+          EOF
+      
+      - name: Setup export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          cp -r godot_templates/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+      
+      - name: Import project resources
+        run: ./godot --headless --import --path . 2>&1 | head -50 || true
+      
+      # NOTE: For production release, you MUST set up a release keystore.
+      # Add these as GitHub Secrets in your repo settings:
+      #   ANDROID_KEYSTORE_BASE64  (base64-encoded .keystore file)
+      #   ANDROID_KEYSTORE_USER    (keystore alias)
+      #   ANDROID_KEYSTORE_PASSWORD (keystore password)
+      # Then uncomment the keystore setup below.
+      
+      # - name: Decode release keystore
+      #   run: |
+      #     echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+      #     echo "Keystore created."
+      
+      - name: Build Release APK
+        run: |
+          mkdir -p build
+          ./godot --headless --path . --export-release "Android" build/$EXPORT_NAME.apk 2>&1 | tee build_log.txt
+          ls -la build/
+      
+      - name: Verify APK
+        run: |
+          if [ ! -f "build/$EXPORT_NAME.apk" ]; then
+            echo "ERROR: APK not built!"
+            cat build_log.txt
+            exit 1
+          fi
+          echo "APK size: $(du -h build/$EXPORT_NAME.apk | cut -f1)"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: Aura Blocks ${{ steps.version.outputs.VERSION }}
+          body: |
+            # Aura Blocks ${{ steps.version.outputs.VERSION }}
+            
+            ## Installation
+            1. Download the APK file below
+            2. Enable "Install from unknown sources" on your Android phone
+            3. Tap the APK file to install
+            4. Enjoy! No login required.
+            
+            ## What's New
+            - Bug fixes and improvements
+            - New levels added
+            - Performance optimizations
+            
+            ---
+            Built automatically from commit ${{ github.sha }}
+          files: |
+            build/${{ env.EXPORT_NAME }}.apk
+            build_log.txt
+          draft: false
+          prerelease: false

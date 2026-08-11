@@ -1,0 +1,33 @@
+# Godot editor files
+.godot/
+*.import
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+build/
+*.apk
+*.aab
+*.keystore
+*.jks
+keystore_base64.txt
+
+# Logs
+*.log
+build_log.txt
+
+# Godot export configs (uncomment if you don't want to commit these)
+# export_presets.cfg
+
+# Local save data (when running in editor)
+user://

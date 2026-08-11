@@ -1,0 +1,301 @@
+[gd_scene load_steps=6 format=3 uid="uid://b_game_scene"]
+
+[ext_resource type="Script" path="res://scripts/Game.gd" id="1_game"]
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/GameOverUI.gd" id="3_gameover"]
+[ext_resource type="Script" path="res://scripts/LevelCompleteUI.gd" id="4_levelcomplete"]
+
+[sub_resource type="RectangleShape2D" id="RectWall"]
+size = Vector2(20, 1920)
+
+[sub_resource type="RectangleShape2D" id="RectFloor"]
+size = Vector2(1080, 20)
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_game")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.05, 0.05, 0.12, 1)
+
+[node name="DangerLine" type="Line2D" parent="."]
+points = PackedVector2Array(0, 150, 1080, 150)
+width = 3.0
+default_color = Color(0.95, 0.3, 0.3, 0.5)
+
+[node name="Walls" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="LeftWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(10, 960)
+shape = SubResource("RectWall")
+
+[node name="RightWall" type="CollisionShape2D" parent="Walls"]
+position = Vector2(1070, 960)
+shape = SubResource("RectWall")
+
+[node name="Floor" type="CollisionShape2D" parent="Walls"]
+position = Vector2(540, 1900)
+shape = SubResource("RectFloor")
+
+[node name="BlocksContainer" type="Node2D" parent="."]
+
+[node name="NextBlockPreview" type="Sprite2D" parent="."]
+position = Vector2(540, 80)
+centered = true
+
+[node name="NextBlockLabel" type="Label" parent="."]
+position = Vector2(440, 60)
+size = Vector2(200, 40)
+horizontal_alignment = 1
+text = "Next:"
+add_theme_font_size_override("font_size", 28)
+add_theme_color_override("font_color", Color(0.8, 0.85, 1, 0.8))
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("2_hud")
+
+[node name="Control" type="Control" parent="HUD"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="TopBar" type="HBoxContainer" parent="HUD/Control"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 30
+offset_top = 30
+offset_right = -30
+offset_bottom = 130
+
+[node name="LevelLabel" type="Label" parent="HUD/Control/TopBar"]
+custom_minimum_size = Vector2(200, 80)
+text = "Level 1"
+add_theme_font_size_override("font_size", 36)
+add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
+
+[node name="ScoreContainer" type="VBoxContainer" parent="HUD/Control/TopBar"]
+custom_minimum_size = Vector2(400, 80)
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="HUD/Control/TopBar/ScoreContainer"]
+text = "0"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 56)
+add_theme_color_override("font_color", Color(1, 0.95, 0.5))
+
+[node name="TargetLabel" type="Label" parent="HUD/Control/TopBar/ScoreContainer"]
+text = "/ 500"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 28)
+add_theme_color_override("font_color", Color(0.7, 0.75, 0.85))
+
+[node name="ProgressBar" type="ProgressBar" parent="HUD/Control/TopBar/ScoreContainer"]
+custom_minimum_size = Vector2(400, 8)
+max_value = 500
+value = 0
+
+[node name="MovesContainer" type="VBoxContainer" parent="HUD/Control/TopBar"]
+custom_minimum_size = Vector2(200, 80)
+alignment = 1
+
+[node name="MovesLabel" type="Label" parent="HUD/Control/TopBar/MovesContainer"]
+text = "20"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 56)
+add_theme_color_override("font_color", Color(1, 1, 1))
+
+[node name="MovesCaption" type="Label" parent="HUD/Control/TopBar/MovesContainer"]
+text = "moves"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 24)
+add_theme_color_override("font_color", Color(0.7, 0.75, 0.85))
+
+[node name="PauseButton" type="Button" parent="HUD/Control/TopBar"]
+custom_minimum_size = Vector2(80, 80)
+text = "II"
+add_theme_font_size_override("font_size", 36)
+
+[node name="ChainPopup" type="Label" parent="HUD/Control"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300
+offset_top = -100
+offset_right = 300
+offset_bottom = 100
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "2x CHAIN!"
+add_theme_font_size_override("font_size", 72)
+add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+
+[node name="GameOverUI" type="CanvasLayer" parent="."]
+script = ExtResource("3_gameover")
+
+[node name="Background" type="ColorRect" parent="GameOverUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+visible = false
+
+[node name="Panel" type="Panel" parent="GameOverUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400
+offset_top = -500
+offset_right = 400
+offset_bottom = 500
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="GameOverUI/Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40
+offset_top = 40
+offset_right = -40
+offset_bottom = -40
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="GameOverUI/Panel/VBox"]
+text = "Game Over"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 64)
+
+[node name="Spacer1" type="Control" parent="GameOverUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 30)
+
+[node name="ScoreLabel" type="Label" parent="GameOverUI/Panel/VBox"]
+text = "Score: 0"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 40)
+
+[node name="TargetLabel" type="Label" parent="GameOverUI/Panel/VBox"]
+text = "Target: 500"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 28)
+
+[node name="Spacer2" type="Control" parent="GameOverUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+
+[node name="WatchAdButton" type="Button" parent="GameOverUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "WATCH AD for +5 Moves"
+add_theme_font_size_override("font_size", 32)
+
+[node name="RetryButton" type="Button" parent="GameOverUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 90)
+text = "Retry"
+add_theme_font_size_override("font_size", 32)
+
+[node name="HomeButton" type="Button" parent="GameOverUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 90)
+text = "Home"
+add_theme_font_size_override("font_size", 32)
+
+[node name="LevelCompleteUI" type="CanvasLayer" parent="."]
+script = ExtResource("4_levelcomplete")
+
+[node name="Background" type="ColorRect" parent="LevelCompleteUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+visible = false
+
+[node name="Panel" type="Panel" parent="LevelCompleteUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400
+offset_top = -500
+offset_right = 400
+offset_bottom = 500
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteUI/Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40
+offset_top = 40
+offset_right = -40
+offset_bottom = -40
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="LevelCompleteUI/Panel/VBox"]
+text = "Level Complete!"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 56)
+
+[node name="StarsContainer" type="HBoxContainer" parent="LevelCompleteUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 120)
+alignment = 1
+
+[node name="Spacer3" type="Control" parent="LevelCompleteUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 30)
+
+[node name="ScoreLabel" type="Label" parent="LevelCompleteUI/Panel/VBox"]
+text = "Score: 0"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 40)
+
+[node name="CoinsLabel" type="Label" parent="LevelCompleteUI/Panel/VBox"]
+text = "Coins: +0"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 28)
+add_theme_color_override("font_color", Color(1, 0.85, 0.2))
+
+[node name="Spacer4" type="Control" parent="LevelCompleteUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+
+[node name="NextButton" type="Button" parent="LevelCompleteUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 100)
+text = "Next Level"
+add_theme_font_size_override("font_size", 36)
+
+[node name="ReplayButton" type="Button" parent="LevelCompleteUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 80)
+text = "Replay"
+add_theme_font_size_override("font_size", 28)
+
+[node name="HomeButton" type="Button" parent="LevelCompleteUI/Panel/VBox"]
+custom_minimum_size = Vector2(0, 80)
+text = "Home"
+add_theme_font_size_override("font_size", 28)
+
+[node name="AdOverlay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.9)
+visible = false
+
+[node name="AdLabel" type="Label" parent="AdOverlay"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300
+offset_top = -50
+offset_right = 300
+offset_bottom = 50
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Loading ad..."
+add_theme_font_size_override("font_size", 48)
+add_theme_color_override("font_color", Color(1, 1, 1))

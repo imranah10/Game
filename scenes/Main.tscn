@@ -1,0 +1,98 @@
+[gd_scene load_steps=2 format=3 uid="uid://b_main_scene_entry"]
+
+[ext_resource type="Script" path="res://scripts/MainMenu.gd" id="1_main"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Background" type="ColorRect" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.08, 0.15, 1)
+
+[node name="UI" type="Control" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -500
+offset_right = 500
+offset_top = 200
+offset_bottom = 360
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "AURA BLOCKS"
+add_theme_font_size_override("font_size", 110)
+add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))
+
+[node name="SubtitleLabel" type="Label" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -500
+offset_right = 500
+offset_top = 370
+offset_bottom = 440
+horizontal_alignment = 1
+text = "Drop. Merge. Chain. Repeat."
+add_theme_font_size_override("font_size", 40)
+add_theme_color_override("font_color", Color(0.7, 0.8, 0.95, 1))
+
+[node name="PlayButton" type="Button" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250
+offset_right = 250
+offset_top = 780
+offset_bottom = 920
+text = "PLAY"
+add_theme_font_size_override("font_size", 56)
+
+[node name="SettingsButton" type="Button" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250
+offset_right = 250
+offset_top = 970
+offset_bottom = 1080
+text = "Settings"
+add_theme_font_size_override("font_size", 40)
+
+[node name="BackupButton" type="Button" parent="CanvasLayer/UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250
+offset_right = 250
+offset_top = 1130
+offset_bottom = 1240
+text = "Backup Progress"
+add_theme_font_size_override("font_size", 32)
+
+[node name="CoinsLabel" type="Label" parent="CanvasLayer/UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -350
+offset_right = -30
+offset_top = 30
+offset_bottom = 80
+horizontal_alignment = 2
+text = "Coins: 0"
+add_theme_font_size_override("font_size", 32)
+add_theme_color_override("font_color", Color(1, 0.85, 0.2))
