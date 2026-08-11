@@ -53,7 +53,7 @@ func start_play_session() -> void:
         play_time_start = Time.get_unix_time_from_system()
 
 func end_play_session() -> void:
-        var duration := Time.get_unix_time_from_system() - play_time_start
+        var duration: float = Time.get_unix_time_from_system() - play_time_start
         SaveManager.data.stats.total_play_time_sec += int(duration)
         SaveManager.save_data()
 

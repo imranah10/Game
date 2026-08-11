@@ -12,9 +12,6 @@
 
 extends Node2D
 
-# Preload Block script for type reference
-const Block = preload("res://scripts/Block.gd")
-
 signal score_changed(score: int)
 signal moves_changed(moves: int)
 signal level_completed(score: int, stars: int)
@@ -82,13 +79,13 @@ func _setup_walls() -> void:
 
 func _pick_random_tier() -> int:
         # Weighted random: lower tiers more common
-        var max_tier := int(level_data.get("block_types", 4))
+        var max_tier: int = int(level_data.get("block_types", 4))
         max_tier = min(max_tier, 5)  # tier 6 only via merge
         var weights := [40, 25, 15, 10, 5]  # tiers 1-5
         var total := 0
         for i in min(max_tier, weights.size()):
                 total += weights[i]
-        var r := randi() % total
+        var r: int = randi() % total
         var cumulative := 0
         for i in min(max_tier, weights.size()):
                 cumulative += weights[i]
@@ -111,13 +108,13 @@ func _spawn_block_at(x: float) -> void:
         if moves_left <= 0:
                 return
         
-        var now := Time.get_unix_time_from_system()
+        var now: float = Time.get_unix_time_from_system()
         if now - last_spawn_time < SPAWN_COOLDOWN:
                 return
         last_spawn_time = now
         
         # Clamp X within walls
-        var viewport_w := get_viewport_rect().size.x
+        var viewport_w: float = get_viewport_rect().size.x
         x = clamp(x, 80, viewport_w - 80)
         
         # Spawn the next block
@@ -157,15 +154,15 @@ func _check_merges() -> void:
         while merged_any:
                 merged_any = false
                 var to_merge: Dictionary = {}  # block -> [other_block]
-                var to_remove: Array[Block] = []
+                var to_remove: Array = []
                 
                 # Find all pairs of touching same-tier blocks
                 for i in blocks.size():
-                        var b1 := blocks[i]
+                        var b1 = blocks[i]
                         if b1 == null or b1.is_exploding or b1 in to_remove:
                                 continue
                         for j in range(i + 1, blocks.size()):
-                                var b2 := blocks[j]
+                                var b2 = blocks[j]
                                 if b2 == null or b2.is_exploding or b2 in to_remove:
                                         continue
                                 if b1.can_merge_with(b2):
@@ -250,7 +247,7 @@ func _check_game_state() -> void:
                 return
         
         # Overflow check: if any block goes above the danger line
-        var danger_y := DROP_Y - 50
+        var danger_y: float = DROP_Y - 50
         for block in blocks:
                 if block != null and not block.is_exploding and block.global_position.y < danger_y and block.linear_velocity.length() < 5.0:
                         _game_over()

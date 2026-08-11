@@ -32,7 +32,7 @@ func _populate_levels() -> void:
 		btn.text = str(level_id)
 		btn.add_theme_font_size_override("font_size", 36)
 		
-		var unlocked := SaveManager.is_level_unlocked(level_id)
+		var unlocked: bool = SaveManager.is_level_unlocked(level_id)
 		btn.disabled = not unlocked
 		
 		var stars := SaveManager.get_level_stars(level_id)

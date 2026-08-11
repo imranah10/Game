@@ -67,12 +67,12 @@ func show_results(final_score: int, stars: int, level_data: Dictionary) -> void:
 	tween.tween_property(background, "color:a", 0.7, 0.3)
 	
 	# Show "Next" button only if more levels exist
-	var next_id := LevelManager.get_next_level_id(level_data.id)
+	var next_id: int = LevelManager.get_next_level_id(level_data.id)
 	next_button.visible = next_id > 0
 
 func _on_next() -> void:
 	AudioManager.play_button_click()
-	var next_id := LevelManager.get_next_level_id(LevelManager.current_level_id)
+	var next_id: int = LevelManager.get_next_level_id(LevelManager.current_level_id)
 	if next_id > 0:
 		GameManager.go_to_game(next_id)
 
