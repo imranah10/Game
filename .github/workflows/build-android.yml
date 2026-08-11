@@ -115,13 +115,17 @@ jobs:
           ./godot --headless --import --path $PROJECT_PATH 2>&1 | head -100 || true
           echo "Import attempt complete."
       
-      # ---------- Step 11: Install Android Build Template ----------
-      - name: Install Android Build Template
+      # ---------- Step 11: Verify Android Build Template exists ----------
+      - name: Verify Android Build Template
         run: |
-          echo "Installing Android build template..."
-          ./godot --headless --path $PROJECT_PATH --g "Install Android Build Template" 2>&1 | head -50 || true
-          # Check if android/build/ directory was created
-          ls -la android/build/ 2>&1 || echo "Template not auto-installed, will rely on Gradle build"
+          echo "Checking Android build template..."
+          if [ -d "android/build" ]; then
+            echo "✅ Android build template found in repo"
+            ls android/build/ | head -10
+          else
+            echo "❌ Android build template NOT found - build will fail!"
+            exit 1
+          fi
       
       # ---------- Step 12: Build Android Debug APK ----------
       - name: Build Android Debug APK
