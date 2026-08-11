@@ -1,5 +1,5 @@
 # GitHub Actions Workflow: Auto-build Android APK
-# Uses direct Godot engine + Android SDK setup (no Docker)
+# Uses barichello/godot-ci action (industry standard for Godot CI)
 
 name: Build Android APK
 
@@ -13,7 +13,6 @@ on:
 env:
   GODOT_VERSION: 4.3
   EXPORT_NAME: AuraBlocks
-  PROJECT_PATH: .
 
 jobs:
   build-android:
@@ -25,32 +24,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Cache Godot Engine
-        id: cache-godot
-        uses: actions/cache@v4
+      - name: Setup Godot
+        uses: barichello/godot-ci@master
         with:
-          path: |
-            godot
-            ~/.local/share/godot/export_templates
-          key: ${{ runner.os }}-godot-${{ env.GODOT_VERSION }}-v3
-      
-      - name: Download Godot Engine
-        if: steps.cache-godot.outputs.cache-hit != 'true'
-        run: |
-          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
-          unzip -q Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
-          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot
-          chmod +x godot
-          ./godot --version
-      
-      - name: Download Export Templates
-        if: steps.cache-godot.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
-          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz
-          cp templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
-          ls ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          godot-version: ${{ env.GODOT_VERSION }}
       
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -73,12 +50,10 @@ jobs:
             -dname "CN=Android Debug,O=Android,C=US" \
             -storepass android -keypass android \
             -keystore ~/.android/debug.keystore 2>&1 || true
-          ls -la ~/.android/debug.keystore
       
       - name: Configure Godot editor settings
         run: |
           mkdir -p ~/.config/godot
-          # Use printf to avoid heredoc indentation issues
           printf '[filesystem]\n' > ~/.config/godot/editor_settings.cfg
           printf 'import/android_android_sdk_path="%s"\n' "$ANDROID_HOME" >> ~/.config/godot/editor_settings.cfg
           printf 'import/android_jdk_path="%s"\n' "$JAVA_HOME" >> ~/.config/godot/editor_settings.cfg
@@ -88,19 +63,14 @@ jobs:
           printf 'android/debug_keystore_password="android"\n' >> ~/.config/godot/editor_settings.cfg
           echo "=== Editor settings ==="
           cat ~/.config/godot/editor_settings.cfg
-          echo "=== Android SDK check ==="
-          ls $ANDROID_HOME/platforms/ 2>&1
-          ls $ANDROID_HOME/build-tools/ 2>&1
       
       - name: Import project resources
-        run: |
-          ./godot --headless --import --path $PROJECT_PATH 2>&1 | head -100 || true
+        run: godot --headless --import --path . 2>&1 | head -100 || true
       
       - name: Verify Android Build Template
         run: |
           if [ -d "android/build" ]; then
             echo "✅ Android build template found"
-            ls android/build/ | head -10
           else
             echo "❌ Android build template NOT found"
             exit 1
@@ -112,23 +82,13 @@ jobs:
           echo "  Building Aura Blocks Android APK"
           echo "=========================================="
           mkdir -p build
-          
-          # Run Godot export with verbose output
-          ./godot --headless --verbose --path $PROJECT_PATH --export-debug "Android" build/$EXPORT_NAME.apk 2>&1 | tee build_log.txt
-          
+          godot --headless --verbose --path . --export-debug "Android" build/$EXPORT_NAME.apk 2>&1 | tee build_log.txt
           echo "---"
-          echo "Build output:"
           ls -la build/ 2>&1
-          
           if [ -f "build/$EXPORT_NAME.apk" ]; then
-            echo "=========================================="
-            echo "  ✅ APK BUILD SUCCESSFUL!"
-            echo "  Size: $(du -h build/$EXPORT_NAME.apk | cut -f1)"
-            echo "=========================================="
+            echo "✅ APK BUILD SUCCESSFUL! Size: $(du -h build/$EXPORT_NAME.apk | cut -f1)"
           else
-            echo "=========================================="
-            echo "  ❌ APK BUILD FAILED"
-            echo "=========================================="
+            echo "❌ APK BUILD FAILED"
             exit 1
           fi
       
