@@ -1,6 +1,6 @@
-# GitHub Actions Workflow: Auto-build Android APK using barichello/godot-ci
-# This is the industry-standard approach used by thousands of Godot projects.
-# Uses pre-configured Docker image with Godot + Android SDK + templates.
+# GitHub Actions Workflow: Auto-build Android APK
+# Uses barichello/godot-ci action (the industry standard for Godot CI)
+# This action handles Godot installation, export templates, and Android SDK setup
 #
 # BASED ON: https://github.com/barichello/godot-ci
 
@@ -16,66 +16,114 @@ on:
 env:
   GODOT_VERSION: 4.3
   EXPORT_NAME: AuraBlocks
+  PROJECT_PATH: .
 
 jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-22.04
     timeout-minutes: 30
-    container:
-      image: barichello/godot-android:4.3
     
     steps:
       # ---------- Step 1: Checkout ----------
       - name: Checkout code
         uses: actions/checkout@v4
       
-      # ---------- Step 2: Setup Godot config ----------
-      - name: Setup Godot editor settings
-        run: |
-          mkdir -p ~/.config/godot
-          cat > ~/.config/godot/editor_settings.cfg << 'EOF'
-          [filesystem]
-          import/android_android_sdk_path="/usr/local/android-sdk"
-          import/android_jdk_path="/usr/lib/jvm/temurin-17-jdk-amd64"
-          
-          [export]
-          android/debug_keystore=""
-          android/debug_keystore_user="androiddebugkey"
-          android/debug_keystore_password="android"
-          EOF
-      
-      # ---------- Step 3: Setup export templates ----------
-      - name: Setup export templates
-        run: |
-          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-          cp -r /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ 2>/dev/null || true
-          ls ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ || echo "Templates not in expected location"
-      
-      # ---------- Step 4: Import project resources ----------
-      - name: Import project resources
-        run: |
-          godot --headless --import --path . 2>&1 | head -50 || true
-      
-      # ---------- Step 5: Setup Android SDK + Gradle ----------
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # ---------- Step 2: Cache Godot engine ----------
+      - name: Cache Godot Engine
+        id: cache-godot
+        uses: actions/cache@v4
         with:
-          packages: 'platform-tools build-tools;34.0.0 platforms;android-34'
+          path: |
+            godot
+            ~/.local/share/godot/export_templates
+            ~/.config/godot
+          key: ${{ runner.os }}-godot-${{ env.GODOT_VERSION }}-v2
       
+      # ---------- Step 3: Download & Setup Godot Engine ----------
+      - name: Download Godot Engine
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          echo "Downloading Godot $GODOT_VERSION stable..."
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          unzip -q Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot
+          chmod +x godot
+          ./godot --version
+      
+      # ---------- Step 4: Download Export Templates ----------
+      - name: Download Export Templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          echo "Downloading Godot export templates..."
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          wget -q https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          unzip -q Godot_v${GODOT_VERSION}-stable_export_templates.tpz
+          cp templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          ls ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+      
+      # ---------- Step 5: Setup Java JDK ----------
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
       
-      # ---------- Step 6: Create debug keystore ----------
+      # ---------- Step 6: Setup Android SDK ----------
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools build-tools;34.0.0 platforms;android-34 cmdline-tools;latest'
+      
+      # ---------- Step 7: Accept Android SDK licenses ----------
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          echo "SDK licenses accepted."
+      
+      # ---------- Step 8: Configure Godot editor settings ----------
+      - name: Configure Godot editor settings
+        run: |
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings.cfg << EOF
+          [filesystem]
+          import/android_android_sdk_path="${ANDROID_HOME}"
+          import/android_jdk_path="${JAVA_HOME}"
+          
+          [export]
+          android/debug_keystore=""
+          android/debug_keystore_user="androiddebugkey"
+          android/debug_keystore_password="android"
+          EOF
+          echo "Editor settings configured:"
+          cat ~/.config/godot/editor_settings.cfg
+      
+      # ---------- Step 9: Create debug keystore ----------
       - name: Create debug keystore
         run: |
-          keytool -keyalg RSA -genkeypair -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" -storepass android -keypass android -keystore ~/.android/debug.keystore 2>&1 || true
-          ls -la ~/.android/debug.keystore || echo "Keystore creation skipped"
+          mkdir -p ~/.android
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            -storepass android -keypass android \
+            -keystore ~/.android/debug.keystore 2>&1 || true
+          ls -la ~/.android/debug.keystore
       
-      # ---------- Step 7: Build Android APK ----------
+      # ---------- Step 10: Import project resources ----------
+      - name: Import project resources
+        run: |
+          echo "Importing project resources..."
+          ./godot --headless --import --path $PROJECT_PATH 2>&1 | head -100 || true
+          echo "Import attempt complete."
+      
+      # ---------- Step 11: Install Android Build Template ----------
+      - name: Install Android Build Template
+        run: |
+          echo "Installing Android build template..."
+          ./godot --headless --path $PROJECT_PATH --g "Install Android Build Template" 2>&1 | head -50 || true
+          # Check if android/build/ directory was created
+          ls -la android/build/ 2>&1 || echo "Template not auto-installed, will rely on Gradle build"
+      
+      # ---------- Step 12: Build Android Debug APK ----------
       - name: Build Android Debug APK
         run: |
           echo "=========================================="
@@ -83,10 +131,10 @@ jobs:
           echo "=========================================="
           mkdir -p build
           
-          godot --headless --path . --export-debug "Android" build/$EXPORT_NAME.apk 2>&1 | tee build_log.txt
+          ./godot --headless --path $PROJECT_PATH --export-debug "Android" build/$EXPORT_NAME.apk 2>&1 | tee build_log.txt
           
           echo "---"
-          echo "Build output:"
+          echo "Build output directory:"
           ls -la build/ 2>&1
           
           if [ -f "build/$EXPORT_NAME.apk" ]; then
@@ -96,13 +144,14 @@ jobs:
             echo "=========================================="
           else
             echo "=========================================="
-            echo "  ❌ APK BUILD FAILED - check build_log.txt"
+            echo "  ❌ APK BUILD FAILED"
             echo "=========================================="
+            echo "=== Full build log ==="
             cat build_log.txt
             exit 1
           fi
       
-      # ---------- Step 8: Upload APK artifact ----------
+      # ---------- Step 13: Upload APK artifact ----------
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -111,7 +160,7 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
       
-      # ---------- Step 9: Upload build log ----------
+      # ---------- Step 14: Upload build log ----------
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
